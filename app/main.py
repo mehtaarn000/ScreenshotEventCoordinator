@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import events, groups
+from app.api import events, extractions, groups
 from app.config import get_settings
 
 settings = get_settings()
@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(events.router, prefix=settings.api_prefix)
+app.include_router(extractions.router, prefix=settings.api_prefix)
 app.include_router(groups.router, prefix=settings.api_prefix)
 
 
