@@ -1,12 +1,12 @@
 import uuid
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-class VoteChoice(str, Enum):
+class VoteChoice(StrEnum):
     going = "going"
     maybe = "maybe"
     no = "no"
@@ -91,4 +91,3 @@ class VoteRead(VoteUpsert):
 class ExtractionResult(EventFields):
     confidence: float = Field(ge=0, le=1)
     warnings: list[str] = Field(default_factory=list)
-

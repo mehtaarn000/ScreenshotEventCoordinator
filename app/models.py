@@ -1,6 +1,6 @@
-import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -9,10 +9,10 @@ from app.database import Base
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
-class VoteChoice(str, enum.Enum):
+class VoteChoice(StrEnum):
     going = "going"
     maybe = "maybe"
     no = "no"

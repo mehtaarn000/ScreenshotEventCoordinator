@@ -1,14 +1,15 @@
 """create event coordination tables"""
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision = "20260709_01"
 down_revision = None
 branch_labels = None
 depends_on = None
 
-vote_choice = sa.Enum("going", "maybe", "no", name="vote_choice")
+vote_choice = postgresql.ENUM("going", "maybe", "no", name="vote_choice", create_type=False)
 
 
 def upgrade() -> None:
@@ -72,4 +73,3 @@ def downgrade() -> None:
     op.drop_table("events")
     op.drop_index("ix_groups_invite_code", table_name="groups")
     op.drop_table("groups")
-
