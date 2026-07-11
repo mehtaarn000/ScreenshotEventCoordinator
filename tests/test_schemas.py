@@ -13,7 +13,6 @@ def test_event_requires_ordered_times() -> None:
             starts_at=datetime.fromisoformat("2026-07-10T20:00:00-05:00"),
             ends_at=datetime.fromisoformat("2026-07-10T19:00:00-05:00"),
             timezone="America/Chicago",
-            created_by="user-1",
         )
 
 
@@ -23,6 +22,4 @@ def test_event_rejects_unknown_timezone() -> None:
             title="Concert",
             starts_at=datetime.fromisoformat("2026-07-10T20:00:00-05:00"),
             timezone="Central-ish",
-            created_by="user-1",
         )
-

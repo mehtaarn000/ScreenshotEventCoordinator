@@ -24,8 +24,10 @@ async def get_group_by_invite(db: AsyncSession, invite_code: str) -> models.Grou
     return await db.scalar(select(models.Group).where(models.Group.invite_code == invite_code))
 
 
-async def create_event(db: AsyncSession, payload: schemas.EventCreate) -> models.Event:
-    event = models.Event(**payload.model_dump())
+async def create_event(
+    db: AsyncSession, payload: schemas.EventCreate, owner_id: uuid.UUID
+) -> models.Event:
+    event = models.Event(**payload.model_dump(), owner_id=owner_id)
     db.add(event)
     await db.commit()
     return await get_event(db, event.id)  # type: ignore[return-value]
@@ -72,17 +74,17 @@ async def share_event(
 
 
 async def upsert_vote(
-    db: AsyncSession, event_id: uuid.UUID, payload: schemas.VoteUpsert
+    db: AsyncSession, event_id: uuid.UUID, voter_id: uuid.UUID, payload: schemas.VoteUpsert
 ) -> models.Vote:
     vote = await db.scalar(
         select(models.Vote).where(
-            models.Vote.event_id == event_id, models.Vote.voter_id == payload.voter_id
+            models.Vote.event_id == event_id, models.Vote.voter_id == voter_id
         )
     )
     if vote is None:
         vote = models.Vote(
             event_id=event_id,
-            voter_id=payload.voter_id,
+            voter_id=voter_id,
             choice=models.VoteChoice(payload.choice.value),
         )
         db.add(vote)
@@ -107,10 +109,9 @@ async def serialize_event(db: AsyncSession, event: models.Event) -> schemas.Even
     return schemas.EventRead(
         **schemas.EventFields.model_validate(event, from_attributes=True).model_dump(),
         id=event.id,
-        created_by=event.created_by,
+        owner_id=event.owner_id,
         created_at=event.created_at,
         updated_at=event.updated_at,
         vote_totals=await get_vote_totals(db, event.id),
         group_ids=[link.group_id for link in event.groups],
     )
-

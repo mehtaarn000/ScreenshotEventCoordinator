@@ -39,7 +39,7 @@ class Event(Base):
     timezone: Mapped[str] = mapped_column(String(64))
     location: Mapped[str | None] = mapped_column(String(300))
     description: Mapped[str | None] = mapped_column(Text)
-    created_by: Mapped[str] = mapped_column(String(200), index=True)
+    owner_id: Mapped[uuid.UUID] = mapped_column(index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
@@ -76,7 +76,7 @@ class Vote(Base):
     event_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("events.id", ondelete="CASCADE"), index=True
     )
-    voter_id: Mapped[str] = mapped_column(String(200))
+    voter_id: Mapped[uuid.UUID] = mapped_column()
     choice: Mapped[VoteChoice] = mapped_column(Enum(VoteChoice, name="vote_choice"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(

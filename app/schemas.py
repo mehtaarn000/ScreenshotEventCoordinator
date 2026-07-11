@@ -37,7 +37,7 @@ class EventFields(BaseModel):
 
 
 class EventCreate(EventFields):
-    created_by: str = Field(min_length=1, max_length=200)
+    pass
 
 
 class EventUpdate(EventFields):
@@ -52,7 +52,7 @@ class VoteTotals(BaseModel):
 
 class EventRead(EventFields):
     id: uuid.UUID
-    created_by: str
+    owner_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
     vote_totals: VoteTotals
@@ -75,13 +75,13 @@ class GroupRead(BaseModel):
 
 
 class VoteUpsert(BaseModel):
-    voter_id: str = Field(min_length=1, max_length=200)
     choice: VoteChoice
 
 
 class VoteRead(VoteUpsert):
     id: uuid.UUID
     event_id: uuid.UUID
+    voter_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
