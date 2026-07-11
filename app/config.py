@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     openai_vision_model: str = "gpt-5.4-mini"
     allowed_origins: list[str] = ["http://localhost:5173"]
     max_upload_bytes: int = 10 * 1024 * 1024
+    supabase_url: str | None = None
+    supabase_jwt_audience: str = "authenticated"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -26,4 +28,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-
