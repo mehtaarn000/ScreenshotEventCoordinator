@@ -18,6 +18,11 @@ class VoteChoice(StrEnum):
     no = "no"
 
 
+class GroupRole(StrEnum):
+    owner = "owner"
+    member = "member"
+
+
 class Group(Base):
     __tablename__ = "groups"
 
@@ -27,6 +32,22 @@ class Group(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     events: Mapped[list["EventGroup"]] = relationship(back_populates="group")
+    members: Mapped[list["GroupMember"]] = relationship(
+        back_populates="group", cascade="all, delete-orphan"
+    )
+
+
+class GroupMember(Base):
+    __tablename__ = "group_members"
+
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("groups.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(primary_key=True, index=True)
+    role: Mapped[GroupRole] = mapped_column(Enum(GroupRole, name="group_role"))
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    group: Mapped[Group] = relationship(back_populates="members")
 
 
 class Event(Base):

@@ -8,9 +8,14 @@ from sqlalchemy.orm import selectinload
 from app import models, schemas
 
 
-async def create_group(db: AsyncSession, payload: schemas.GroupCreate) -> models.Group:
+async def create_group(
+    db: AsyncSession, payload: schemas.GroupCreate, owner_id: uuid.UUID
+) -> models.Group:
     group = models.Group(name=payload.name, invite_code=secrets.token_urlsafe(8))
     db.add(group)
+    group.members.append(
+        models.GroupMember(user_id=owner_id, role=models.GroupRole.owner)
+    )
     await db.commit()
     await db.refresh(group)
     return group
@@ -22,6 +27,25 @@ async def get_group(db: AsyncSession, group_id: uuid.UUID) -> models.Group | Non
 
 async def get_group_by_invite(db: AsyncSession, invite_code: str) -> models.Group | None:
     return await db.scalar(select(models.Group).where(models.Group.invite_code == invite_code))
+
+
+async def is_group_member(db: AsyncSession, group_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+    membership = await db.get(models.GroupMember, (group_id, user_id))
+    return membership is not None
+
+
+async def join_group(
+    db: AsyncSession, group: models.Group, user_id: uuid.UUID
+) -> models.GroupMember:
+    membership = await db.get(models.GroupMember, (group.id, user_id))
+    if membership is None:
+        membership = models.GroupMember(
+            group_id=group.id, user_id=user_id, role=models.GroupRole.member
+        )
+        db.add(membership)
+        await db.commit()
+        await db.refresh(membership)
+    return membership
 
 
 async def create_event(
@@ -50,6 +74,23 @@ async def list_group_events(db: AsyncSession, group_id: uuid.UUID) -> list[model
         .order_by(models.Event.starts_at)
     )
     return list(result.unique())
+
+
+async def user_can_access_event(
+    db: AsyncSession, event: models.Event, user_id: uuid.UUID
+) -> bool:
+    if event.owner_id == user_id:
+        return True
+    membership = await db.scalar(
+        select(models.GroupMember.group_id)
+        .join(models.EventGroup, models.EventGroup.group_id == models.GroupMember.group_id)
+        .where(
+            models.EventGroup.event_id == event.id,
+            models.GroupMember.user_id == user_id,
+        )
+        .limit(1)
+    )
+    return membership is not None
 
 
 async def update_event(
