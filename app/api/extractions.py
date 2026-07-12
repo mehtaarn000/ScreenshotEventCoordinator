@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
+from app.auth import CurrentUser, get_current_user
 from app.config import Settings, get_settings
 from app.schemas import ExtractionResult
 from app.services.extraction import EventExtractor, ExtractionError
@@ -25,6 +26,7 @@ async def extract_event(
     current_datetime: datetime | None = Form(default=None),
     settings: Settings = Depends(get_settings),
     extractor: EventExtractor = Depends(get_extractor),
+    _: CurrentUser = Depends(get_current_user),
 ) -> ExtractionResult:
     if screenshot.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
@@ -51,4 +53,3 @@ async def extract_event(
         )
     except ExtractionError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-

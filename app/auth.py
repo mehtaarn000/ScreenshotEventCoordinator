@@ -58,7 +58,6 @@ def get_jwt_verifier() -> SupabaseJWTVerifier:
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
-    verifier: SupabaseJWTVerifier = Depends(get_jwt_verifier),
 ) -> CurrentUser:
     if credentials is None:
         raise HTTPException(
@@ -66,4 +65,4 @@ async def get_current_user(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return await asyncio.to_thread(verifier.verify, credentials.credentials)
+    return await asyncio.to_thread(get_jwt_verifier().verify, credentials.credentials)
