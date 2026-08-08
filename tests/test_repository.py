@@ -40,6 +40,25 @@ async def test_members_can_access_shared_events(db) -> None:
     assert await repository.user_can_access_event(db, event, member_id)
     assert not await repository.user_can_access_event(db, event, uuid.uuid4())
 
+    member_events = await repository.list_user_events(db, member_id)
+    outsider_events = await repository.list_user_events(db, uuid.uuid4())
+    assert [item.id for item in member_events] == [event.id]
+    assert outsider_events == []
+
+
+@pytest.mark.asyncio
+async def test_lists_groups_with_membership_roles(db) -> None:
+    owner_id = uuid.uuid4()
+    member_id = uuid.uuid4()
+    group = await repository.create_group(db, schemas.GroupCreate(name="Friends"), owner_id)
+    await repository.join_group(db, group, member_id)
+
+    owner_groups = await repository.list_user_groups(db, owner_id)
+    member_groups = await repository.list_user_groups(db, member_id)
+
+    assert owner_groups[0][1].value == "owner"
+    assert member_groups[0][1].value == "member"
+
 
 @pytest.mark.asyncio
 async def test_vote_identity_comes_from_authenticated_user(db) -> None:
@@ -64,4 +83,3 @@ async def test_vote_identity_comes_from_authenticated_user(db) -> None:
     assert vote.id == updated.id
     assert updated.voter_id == owner_id
     assert updated.choice.value == "maybe"
-

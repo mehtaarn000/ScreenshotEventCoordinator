@@ -10,6 +10,25 @@ from app.database import get_db
 router = APIRouter(prefix="/groups", tags=["groups"])
 
 
+def serialize_group(group, role) -> schemas.GroupRead:
+    return schemas.GroupRead(
+        id=group.id,
+        name=group.name,
+        invite_code=group.invite_code,
+        created_at=group.created_at,
+        role=schemas.GroupRole(role.value),
+    )
+
+
+@router.get("", response_model=list[schemas.GroupRead])
+async def list_groups(
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> list[schemas.GroupRead]:
+    groups = await repository.list_user_groups(db, user.id)
+    return [serialize_group(group, role) for group, role in groups]
+
+
 @router.post("", response_model=schemas.GroupRead, status_code=status.HTTP_201_CREATED)
 async def create_group(
     payload: schemas.GroupCreate,
@@ -17,7 +36,7 @@ async def create_group(
     user: CurrentUser = Depends(get_current_user),
 ) -> schemas.GroupRead:
     group = await repository.create_group(db, payload, user.id)
-    return schemas.GroupRead.model_validate(group)
+    return serialize_group(group, schemas.GroupRole.owner)
 
 
 @router.post("/join/{invite_code}", response_model=schemas.GroupRead)
@@ -29,8 +48,8 @@ async def join_group(
     group = await repository.get_group_by_invite(db, invite_code)
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
-    await repository.join_group(db, group, user.id)
-    return schemas.GroupRead.model_validate(group)
+    membership = await repository.join_group(db, group, user.id)
+    return serialize_group(group, membership.role)
 
 
 @router.get("/{group_id}/events", response_model=list[schemas.EventRead])

@@ -31,6 +31,15 @@ async def accessible_event_or_403(db: AsyncSession, event_id: uuid.UUID, user: C
     return event
 
 
+@router.get("", response_model=list[schemas.EventRead])
+async def list_events(
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> list[schemas.EventRead]:
+    events = await repository.list_user_events(db, user.id)
+    return [await repository.serialize_event(db, event) for event in events]
+
+
 @router.post("", response_model=schemas.EventRead, status_code=status.HTTP_201_CREATED)
 async def create_event(
     payload: schemas.EventCreate,

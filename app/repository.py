@@ -1,7 +1,7 @@
 import secrets
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -48,6 +48,18 @@ async def join_group(
     return membership
 
 
+async def list_user_groups(
+    db: AsyncSession, user_id: uuid.UUID
+) -> list[tuple[models.Group, models.GroupRole]]:
+    rows = await db.execute(
+        select(models.Group, models.GroupMember.role)
+        .join(models.GroupMember)
+        .where(models.GroupMember.user_id == user_id)
+        .order_by(models.Group.name)
+    )
+    return list(rows.tuples())
+
+
 async def create_event(
     db: AsyncSession, payload: schemas.EventCreate, owner_id: uuid.UUID
 ) -> models.Event:
@@ -70,6 +82,24 @@ async def list_group_events(db: AsyncSession, group_id: uuid.UUID) -> list[model
         select(models.Event)
         .join(models.EventGroup)
         .where(models.EventGroup.group_id == group_id)
+        .options(selectinload(models.Event.groups), selectinload(models.Event.votes))
+        .order_by(models.Event.starts_at)
+    )
+    return list(result.unique())
+
+
+async def list_user_events(db: AsyncSession, user_id: uuid.UUID) -> list[models.Event]:
+    result = await db.scalars(
+        select(models.Event)
+        .outerjoin(models.EventGroup)
+        .outerjoin(
+            models.GroupMember,
+            and_(
+                models.GroupMember.group_id == models.EventGroup.group_id,
+                models.GroupMember.user_id == user_id,
+            ),
+        )
+        .where(or_(models.Event.owner_id == user_id, models.GroupMember.user_id == user_id))
         .options(selectinload(models.Event.groups), selectinload(models.Event.votes))
         .order_by(models.Event.starts_at)
     )

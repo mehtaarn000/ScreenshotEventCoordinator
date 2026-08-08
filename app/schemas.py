@@ -12,6 +12,11 @@ class VoteChoice(StrEnum):
     no = "no"
 
 
+class GroupRole(StrEnum):
+    owner = "owner"
+    member = "member"
+
+
 class EventFields(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     starts_at: datetime
@@ -70,6 +75,7 @@ class GroupRead(BaseModel):
     name: str
     invite_code: str
     created_at: datetime
+    role: GroupRole
 
     model_config = ConfigDict(from_attributes=True)
 
