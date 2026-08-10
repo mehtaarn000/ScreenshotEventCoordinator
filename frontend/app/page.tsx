@@ -1,10 +1,9 @@
 "use client";
 
 import { ArrowRight, CalendarDays, ImagePlus, Sparkles } from "lucide-react";
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useAuth } from "./components/auth-provider";
-import { AppShell } from "./components/app-shell";
+import { Dashboard } from "./components/dashboard";
 
 function AuthScreen() {
   const { signIn, signUp, configured } = useAuth();
@@ -72,21 +71,8 @@ function AuthScreen() {
   );
 }
 
-function DashboardPlaceholder() {
-  return (
-    <AppShell>
-      <section className="empty-state">
-        <div className="empty-icon"><ImagePlus /></div>
-        <h1>Your plans are about to get easier.</h1>
-        <p>Start with the screenshot sitting in your camera roll.</p>
-        <Link href="/create" className="button button-primary">Add an event <ArrowRight size={17} /></Link>
-      </section>
-    </AppShell>
-  );
-}
-
 export default function Home() {
   const { user, loading } = useAuth();
   if (loading) return <div className="loading-page"><span className="brand-mark"><CalendarDays /></span><span>Gathering your plans…</span></div>;
-  return user ? <DashboardPlaceholder /> : <AuthScreen />;
+  return user ? <Dashboard /> : <AuthScreen />;
 }
