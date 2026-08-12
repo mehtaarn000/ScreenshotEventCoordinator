@@ -8,6 +8,7 @@ import { ChangeEvent, DragEvent, FormEvent, useEffect, useRef, useState } from "
 import { AppShell } from "../components/app-shell";
 import { useAuth } from "../components/auth-provider";
 import { apiFetch } from "../lib/api";
+import { dateTimeLocalValue, zonedLocalToIso } from "../lib/format";
 import { EventRecord, ExtractionResult, GroupRecord } from "../lib/types";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -20,13 +21,6 @@ interface EventForm {
   timezone: string;
   location: string;
   description: string;
-}
-
-function localInputValue(iso: string | null) {
-  if (!iso) return "";
-  const date = new Date(iso);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
 }
 
 export default function CreateEventPage() {
@@ -99,8 +93,8 @@ export default function CreateEventPage() {
       setResult(extraction);
       setForm({
         title: extraction.title,
-        startsAt: localInputValue(extraction.starts_at),
-        endsAt: localInputValue(extraction.ends_at),
+        startsAt: dateTimeLocalValue(extraction.starts_at, extraction.timezone),
+        endsAt: dateTimeLocalValue(extraction.ends_at, extraction.timezone),
         timezone: extraction.timezone,
         location: extraction.location ?? "",
         description: extraction.description ?? "",
@@ -126,8 +120,8 @@ export default function CreateEventPage() {
         method: "POST",
         body: JSON.stringify({
           title: form.title,
-          starts_at: new Date(form.startsAt).toISOString(),
-          ends_at: form.endsAt ? new Date(form.endsAt).toISOString() : null,
+          starts_at: zonedLocalToIso(form.startsAt, form.timezone),
+          ends_at: form.endsAt ? zonedLocalToIso(form.endsAt, form.timezone) : null,
           timezone: form.timezone,
           location: form.location || null,
           description: form.description || null,
