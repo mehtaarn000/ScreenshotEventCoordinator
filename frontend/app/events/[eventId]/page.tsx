@@ -85,8 +85,9 @@ export default function EventPage() {
     window.setTimeout(() => setCopied(false), 1600);
   }
 
-  if (authLoading || loading) return <div className="loading-page"><LoaderCircle className="spin" />Loading the plan…</div>;
+  if (authLoading) return <div className="loading-page"><LoaderCircle className="spin" />Loading the plan…</div>;
   if (!user) return <div className="loading-page"><p>Sign in to see this event.</p><Link className="button button-primary" href="/">Go to sign in</Link></div>;
+  if (loading) return <div className="loading-page"><LoaderCircle className="spin" />Loading the plan…</div>;
   if (!event) return <AppShell><div className="inline-empty event-error"><CalendarDays /><h1>That plan isn’t here.</h1><p>{error ?? "It may not have been shared with you yet."}</p><Link className="button button-secondary" href="/">Back to my plans</Link></div></AppShell>;
 
   const isOwner = event.owner_id === user.id;
