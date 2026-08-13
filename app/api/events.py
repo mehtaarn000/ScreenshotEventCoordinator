@@ -37,7 +37,7 @@ async def list_events(
     user: CurrentUser = Depends(get_current_user),
 ) -> list[schemas.EventRead]:
     events = await repository.list_user_events(db, user.id)
-    return [await repository.serialize_event(db, event) for event in events]
+    return [await repository.serialize_event(db, event, user.id) for event in events]
 
 
 @router.post("", response_model=schemas.EventRead, status_code=status.HTTP_201_CREATED)
@@ -47,7 +47,7 @@ async def create_event(
     user: CurrentUser = Depends(get_current_user),
 ) -> schemas.EventRead:
     event = await repository.create_event(db, payload, user.id)
-    return await repository.serialize_event(db, event)
+    return await repository.serialize_event(db, event, user.id)
 
 
 @router.get("/{event_id}", response_model=schemas.EventRead)
@@ -56,7 +56,8 @@ async def get_event(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user),
 ) -> schemas.EventRead:
-    return await repository.serialize_event(db, await accessible_event_or_403(db, event_id, user))
+    event = await accessible_event_or_403(db, event_id, user)
+    return await repository.serialize_event(db, event, user.id)
 
 
 @router.put("/{event_id}", response_model=schemas.EventRead)
@@ -69,7 +70,7 @@ async def update_event(
     event = await repository.update_event(
         db, await owned_event_or_403(db, event_id, user), payload
     )
-    return await repository.serialize_event(db, event)
+    return await repository.serialize_event(db, event, user.id)
 
 
 @router.put("/{event_id}/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)

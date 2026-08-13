@@ -14,6 +14,7 @@ export interface EventRecord {
   created_at: string;
   updated_at: string;
   vote_totals: VoteTotals;
+  my_vote: VoteChoice | null;
   group_ids: string[];
 }
 

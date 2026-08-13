@@ -63,4 +63,4 @@ async def group_events(
     if not await repository.is_group_member(db, group_id, user.id):
         raise HTTPException(status_code=403, detail="Group membership required")
     events = await repository.list_group_events(db, group_id)
-    return [await repository.serialize_event(db, event) for event in events]
+    return [await repository.serialize_event(db, event, user.id) for event in events]

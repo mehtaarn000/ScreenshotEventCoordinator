@@ -176,7 +176,16 @@ async def get_vote_totals(db: AsyncSession, event_id: uuid.UUID) -> schemas.Vote
     return schemas.VoteTotals(**counts)
 
 
-async def serialize_event(db: AsyncSession, event: models.Event) -> schemas.EventRead:
+async def serialize_event(
+    db: AsyncSession, event: models.Event, viewer_id: uuid.UUID
+) -> schemas.EventRead:
+    vote_choice = await db.scalar(
+        select(models.Vote.choice).where(
+            models.Vote.event_id == event.id,
+            models.Vote.voter_id == viewer_id,
+        )
+    )
+    my_vote = schemas.VoteChoice(vote_choice.value) if vote_choice else None
     return schemas.EventRead(
         **schemas.EventFields.model_validate(event, from_attributes=True).model_dump(),
         id=event.id,
@@ -184,5 +193,6 @@ async def serialize_event(db: AsyncSession, event: models.Event) -> schemas.Even
         created_at=event.created_at,
         updated_at=event.updated_at,
         vote_totals=await get_vote_totals(db, event.id),
+        my_vote=my_vote,
         group_ids=[link.group_id for link in event.groups],
     )

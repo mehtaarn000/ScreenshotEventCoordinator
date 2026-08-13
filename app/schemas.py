@@ -61,6 +61,7 @@ class EventRead(EventFields):
     created_at: datetime
     updated_at: datetime
     vote_totals: VoteTotals
+    my_vote: VoteChoice | None
     group_ids: list[uuid.UUID]
 
     model_config = ConfigDict(from_attributes=True)

@@ -34,6 +34,7 @@ export default function EventPage() {
     ]).then(([eventData, groupData]) => {
       if (!active) return;
       setEvent(eventData);
+      setSelected(eventData.my_vote);
       setGroups(groupData);
     }).catch((requestError: unknown) => {
       if (active) setError(requestError instanceof Error ? requestError.message : "We couldn’t load this event.");
@@ -54,7 +55,7 @@ export default function EventPage() {
         const totals = { ...current.vote_totals };
         if (selected) totals[selected] = Math.max(0, totals[selected] - 1);
         totals[choice] += 1;
-        return { ...current, vote_totals: totals };
+        return { ...current, vote_totals: totals, my_vote: choice };
       });
       setSelected(choice);
     } catch (requestError) {

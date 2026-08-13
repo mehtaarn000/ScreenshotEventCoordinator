@@ -83,3 +83,7 @@ async def test_vote_identity_comes_from_authenticated_user(db) -> None:
     assert vote.id == updated.id
     assert updated.voter_id == owner_id
     assert updated.choice.value == "maybe"
+
+    serialized = await repository.serialize_event(db, event, owner_id)
+    assert serialized.my_vote == schemas.VoteChoice.maybe
+    assert serialized.vote_totals.maybe == 1
