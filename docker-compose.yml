@@ -15,6 +15,21 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build: .
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/events
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-gpt-5.4-mini}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_JWT_AUDIENCE: ${SUPABASE_JWT_AUDIENCE:-authenticated}
+      ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   postgres_data:
-

@@ -1,41 +1,82 @@
-# Event Screenshot Coordinator backend
+# Gatherly
 
-FastAPI and PostgreSQL backend for turning event screenshots into editable event pages,
-sharing them with groups, and collecting RSVP votes.
+Gatherly turns screenshots of concerts, dinners, games, and other events into plans a group can
+actually decide on. A vision-capable model extracts the details, the creator reviews them, and
+friends respond Going, Maybe, or No.
 
-## Run locally
+## Stack
 
-1. Copy `.env.example` to `.env`, then add `OPENAI_API_KEY` and your `SUPABASE_URL`.
-2. Start PostgreSQL: `docker compose up -d db`.
-3. Install: `python -m venv .venv && .venv/bin/pip install -e '.[dev]'`.
-4. Migrate: `.venv/bin/alembic upgrade head`.
-5. Run: `.venv/bin/uvicorn app.main:app --reload`.
+- React 19 frontend in `frontend/`
+- FastAPI backend in `app/`
+- PostgreSQL with SQLAlchemy and Alembic
+- Supabase Auth with asymmetric JWT verification
+- OpenAI Responses API with vision and structured Pydantic output
 
-OpenAPI documentation is available at `http://localhost:8000/docs`.
+## Local setup
 
-## API flow
+### 1. Configure Supabase
 
-All application endpoints except `/health` require a Supabase access token:
+Create a Supabase project and use an asymmetric signing key. In the project authentication
+settings, add `http://localhost:3000` as an allowed site/redirect URL.
 
-```http
-Authorization: Bearer <supabase-access-token>
+Copy the environment examples:
+
+```bash
+cp .env.example .env
+cp frontend/.env.example frontend/.env.local
 ```
 
-The React client should authenticate with `@supabase/supabase-js`, read the current session's
-access token, and attach it to each FastAPI request. FastAPI verifies asymmetric `ES256` or
-`RS256` tokens using your project's JWKS endpoint. Configure an asymmetric signing key in
-Supabase; the legacy shared JWT secret is intentionally unsupported.
+Set `SUPABASE_URL` and `OPENAI_API_KEY` in `.env`. Set the same Supabase URL plus the project's
+publishable key in `frontend/.env.local`. Never expose a secret or service-role key to React.
 
-1. Upload a screenshot as multipart form data to `POST /api/v1/extractions`, with
-   `viewer_timezone` and optional `current_datetime` fields.
-2. Present the structured result for review and editing in the React app.
-3. Create the reviewed event with `POST /api/v1/events`.
-4. Create a group with `POST /api/v1/groups`, join one with
-   `POST /api/v1/groups/join/{invite_code}`, then share the event using
-   `PUT /api/v1/events/{event_id}/groups/{group_id}`.
-5. Upsert a person's RSVP at `PUT /api/v1/events/{event_id}/vote`; read totals from
-   the event response or `GET /api/v1/events/{event_id}/votes`.
+### 2. Start the API and database
 
-Event ownership and vote identity come only from the verified JWT `sub` claim. Group members can
-view and vote on shared events; only event owners can edit or share them. Existing string user IDs
-must contain UUID values before running the authentication migration.
+```bash
+docker compose up --build
+```
+
+PostgreSQL starts first, Alembic applies the schema, and FastAPI becomes available at
+`http://localhost:8000`. Interactive API documentation is at `http://localhost:8000/docs`.
+
+### 3. Start React
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`, create an account, and confirm the email if email confirmation is
+enabled in Supabase.
+
+## Product flow
+
+1. React authenticates the user with Supabase and attaches the access token to API calls.
+2. `POST /api/v1/extractions` accepts a screenshot and returns editable structured event data.
+3. `POST /api/v1/events` saves the reviewed event under the authenticated user's UUID.
+4. Users create or join groups and event owners share events with those groups.
+5. Group members view the event page and upsert their RSVP. The API returns totals and the
+   current user's response.
+
+## Useful commands
+
+Backend:
+
+```bash
+python -m venv .venv
+.venv/bin/pip install -e '.[dev]'
+.venv/bin/ruff check .
+.venv/bin/pytest
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run lint
+npm run typecheck
+npm test
+```
+
+Existing pre-authentication `created_by` and `voter_id` values must be UUID strings before the
+authentication migration can convert them to Supabase user IDs.
