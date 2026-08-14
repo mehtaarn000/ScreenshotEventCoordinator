@@ -1,7 +1,8 @@
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -10,7 +11,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/events"
     openai_api_key: str | None = None
     openai_vision_model: str = "gpt-5.4-mini"
-    allowed_origins: list[str] = ["http://localhost:5173"]
+    allowed_origins: Annotated[list[str], NoDecode] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ]
     max_upload_bytes: int = 10 * 1024 * 1024
     supabase_url: str | None = None
     supabase_jwt_audience: str = "authenticated"
