@@ -32,6 +32,9 @@ class SupabaseJWTVerifier:
 
     def verify(self, token: str) -> CurrentUser:
         try:
+            header = jwt.get_unverified_header(token)
+            if header.get("alg") not in {"ES256", "RS256"}:
+                raise InvalidTokenError("Unsupported signing algorithm")
             signing_key = self.jwks.get_signing_key_from_jwt(token)
             claims = jwt.decode(
                 token,
@@ -39,8 +42,10 @@ class SupabaseJWTVerifier:
                 algorithms=["ES256", "RS256"],
                 audience=self.audience,
                 issuer=self.issuer,
-                options={"require": ["exp", "iss", "sub", "aud"]},
+                options={"require": ["exp", "iss", "sub", "aud", "role"]},
             )
+            if claims.get("role") != "authenticated":
+                raise InvalidTokenError("User access token required")
             return CurrentUser(
                 id=uuid.UUID(claims["sub"]),
                 email=claims.get("email"),

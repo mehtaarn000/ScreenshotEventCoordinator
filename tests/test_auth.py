@@ -20,6 +20,7 @@ def test_verifier_rejects_malformed_token() -> None:
 
 
 def test_current_user_requires_uuid_subject(monkeypatch) -> None:
+    monkeypatch.setattr("app.auth.jwt.get_unverified_header", lambda _: {"alg": "ES256"})
     verifier = SupabaseJWTVerifier(Settings(supabase_url="https://project.supabase.co"))
     signing_key = type("SigningKey", (), {"key": "public-key"})()
     monkeypatch.setattr(verifier.jwks, "get_signing_key_from_jwt", lambda _: signing_key)
@@ -39,6 +40,7 @@ def test_current_user_requires_uuid_subject(monkeypatch) -> None:
 
 
 def test_current_user_is_built_from_verified_claims(monkeypatch) -> None:
+    monkeypatch.setattr("app.auth.jwt.get_unverified_header", lambda _: {"alg": "ES256"})
     user_id = uuid.uuid4()
     verifier = SupabaseJWTVerifier(Settings(supabase_url="https://project.supabase.co"))
     signing_key = type("SigningKey", (), {"key": "public-key"})()
