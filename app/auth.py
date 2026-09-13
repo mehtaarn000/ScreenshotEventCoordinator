@@ -25,7 +25,10 @@ class SupabaseJWTVerifier:
             raise RuntimeError("SUPABASE_URL is not configured")
         self.issuer = f"{settings.supabase_url.rstrip('/')}/auth/v1"
         self.audience = settings.supabase_jwt_audience
-        self.jwks = PyJWKClient(f"{self.issuer}/.well-known/jwks.json", cache_keys=True)
+        # Cache the set briefly; a permanent per-key cache would ignore revoked keys.
+        self.jwks = PyJWKClient(
+            f"{self.issuer}/.well-known/jwks.json", cache_keys=False, lifespan=300, timeout=5
+        )
 
     def verify(self, token: str) -> CurrentUser:
         try:
