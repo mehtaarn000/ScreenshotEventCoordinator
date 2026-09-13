@@ -18,6 +18,7 @@ class GroupRole(StrEnum):
 
 
 class EventFields(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     title: str = Field(min_length=1, max_length=200)
     starts_at: datetime
     ends_at: datetime | None = None
@@ -29,7 +30,7 @@ class EventFields(BaseModel):
     def validate_event_times(self) -> "EventFields":
         try:
             ZoneInfo(self.timezone)
-        except ZoneInfoNotFoundError as exc:
+        except (ZoneInfoNotFoundError, ValueError) as exc:
             raise ValueError("timezone must be a valid IANA timezone") from exc
         if self.starts_at.tzinfo is None:
             raise ValueError("starts_at must include a UTC offset")
@@ -42,11 +43,11 @@ class EventFields(BaseModel):
 
 
 class EventCreate(EventFields):
-    pass
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
 class EventUpdate(EventFields):
-    pass
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
 class VoteTotals(BaseModel):
@@ -68,6 +69,7 @@ class EventRead(EventFields):
 
 
 class GroupCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     name: str = Field(min_length=1, max_length=120)
 
 
@@ -82,6 +84,7 @@ class GroupRead(BaseModel):
 
 
 class VoteUpsert(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     choice: VoteChoice
 
 
