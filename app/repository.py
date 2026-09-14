@@ -3,6 +3,7 @@ import uuid
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from app import models, schemas
@@ -43,7 +44,13 @@ async def join_group(
             group_id=group.id, user_id=user_id, role=models.GroupRole.member
         )
         db.add(membership)
-        await db.commit()
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            membership = await db.get(models.GroupMember, (group.id, user_id))
+            if membership is None:
+                raise
         await db.refresh(membership)
     return membership
 
@@ -139,7 +146,13 @@ async def share_event(
     if link is None:
         link = models.EventGroup(event_id=event_id, group_id=group_id)
         db.add(link)
-        await db.commit()
+        try:
+            await db.commit()
+        except IntegrityError:
+            await db.rollback()
+            link = await db.get(models.EventGroup, (event_id, group_id))
+            if link is None:
+                raise
         await db.refresh(link)
     return link
 
