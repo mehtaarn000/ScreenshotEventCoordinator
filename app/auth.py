@@ -6,6 +6,7 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError, PyJWKClient, PyJWKClientError
+from jwt.exceptions import PyJWKClientConnectionError
 from pydantic import BaseModel
 
 from app.config import Settings, get_settings
@@ -51,6 +52,8 @@ class SupabaseJWTVerifier:
                 email=claims.get("email"),
                 role=claims.get("role", "authenticated"),
             )
+        except PyJWKClientConnectionError as exc:
+            raise HTTPException(status_code=503, detail="Authentication temporarily unavailable") from exc
         except (InvalidTokenError, PyJWKClientError, KeyError, TypeError, ValueError) as exc:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -73,4 +76,8 @@ async def get_current_user(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return await asyncio.to_thread(get_jwt_verifier().verify, credentials.credentials)
+    try:
+        verifier = get_jwt_verifier()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="Authentication is not configured") from exc
+    return await asyncio.to_thread(verifier.verify, credentials.credentials)
