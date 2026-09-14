@@ -174,7 +174,19 @@ async def upsert_vote(
         db.add(vote)
     else:
         vote.choice = models.VoteChoice(payload.choice.value)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        vote = await db.scalar(
+            select(models.Vote).where(
+                models.Vote.event_id == event_id, models.Vote.voter_id == voter_id
+            )
+        )
+        if vote is None:
+            raise
+        vote.choice = models.VoteChoice(payload.choice.value)
+        await db.commit()
     await db.refresh(vote)
     return vote
 
