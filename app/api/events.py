@@ -10,6 +10,18 @@ from app.database import get_db
 router = APIRouter(prefix="/events", tags=["events"])
 
 
+@router.delete("/{event_id}", status_code=204)
+async def delete_event(
+    event_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> Response:
+    event = await owned_event_or_403(db, event_id, user)
+    await db.delete(event)
+    await db.commit()
+    return Response(status_code=204)
+
+
 async def event_or_404(db: AsyncSession, event_id: uuid.UUID):
     event = await repository.get_event(db, event_id)
     if event is None:
