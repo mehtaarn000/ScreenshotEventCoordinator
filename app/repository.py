@@ -38,7 +38,8 @@ async def is_group_member(db: AsyncSession, group_id: uuid.UUID, user_id: uuid.U
 async def join_group(
     db: AsyncSession, group: models.Group, user_id: uuid.UUID
 ) -> models.GroupMember:
-    membership = await db.get(models.GroupMember, (group.id, user_id))
+    group_id = group.id
+    membership = await db.get(models.GroupMember, (group_id, user_id))
     if membership is None:
         membership = models.GroupMember(
             group_id=group.id, user_id=user_id, role=models.GroupRole.member
@@ -48,7 +49,7 @@ async def join_group(
             await db.commit()
         except IntegrityError:
             await db.rollback()
-            membership = await db.get(models.GroupMember, (group.id, user_id))
+            membership = await db.get(models.GroupMember, (group_id, user_id))
             if membership is None:
                 raise
         await db.refresh(membership)
@@ -211,6 +212,11 @@ async def serialize_event(
         )
     )
     my_vote = schemas.VoteChoice(vote_choice.value) if vote_choice else None
+    visible_groups = list(await db.scalars(
+        select(models.EventGroup.group_id)
+        .join(models.GroupMember, models.GroupMember.group_id == models.EventGroup.group_id)
+        .where(models.EventGroup.event_id == event.id, models.GroupMember.user_id == viewer_id)
+    ))
     return schemas.EventRead(
         **schemas.EventFields.model_validate(event, from_attributes=True).model_dump(),
         id=event.id,
@@ -219,5 +225,5 @@ async def serialize_event(
         updated_at=event.updated_at,
         vote_totals=await get_vote_totals(db, event.id),
         my_vote=my_vote,
-        group_ids=[link.group_id for link in event.groups],
+        group_ids=visible_groups,
     )
