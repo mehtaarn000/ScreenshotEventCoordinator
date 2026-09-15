@@ -11,6 +11,20 @@ from app.database import get_db
 router = APIRouter(prefix="/events", tags=["events"])
 
 
+@router.delete("/{event_id}/vote", status_code=204)
+async def clear_vote(
+    event_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> Response:
+    await accessible_event_or_403(db, event_id, user)
+    await db.execute(delete(models.Vote).where(
+        models.Vote.event_id == event_id, models.Vote.voter_id == user.id
+    ))
+    await db.commit()
+    return Response(status_code=204)
+
+
 @router.delete("/{event_id}/groups/{group_id}", status_code=204)
 async def unshare_event(
     event_id: uuid.UUID,
