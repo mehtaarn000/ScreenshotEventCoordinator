@@ -2,12 +2,28 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete
 
-from app import repository, schemas
+from app import models, repository, schemas
 from app.auth import CurrentUser, get_current_user
 from app.database import get_db
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+
+@router.delete("/{event_id}/groups/{group_id}", status_code=204)
+async def unshare_event(
+    event_id: uuid.UUID,
+    group_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: CurrentUser = Depends(get_current_user),
+) -> Response:
+    await owned_event_or_403(db, event_id, user)
+    await db.execute(delete(models.EventGroup).where(
+        models.EventGroup.event_id == event_id, models.EventGroup.group_id == group_id
+    ))
+    await db.commit()
+    return Response(status_code=204)
 
 
 @router.delete("/{event_id}", status_code=204)
