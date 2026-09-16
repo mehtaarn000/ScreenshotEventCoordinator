@@ -38,10 +38,16 @@ async def extract_event(
         )
     try:
         ZoneInfo(viewer_timezone)
-    except ZoneInfoNotFoundError as exc:
+    except (ZoneInfoNotFoundError, ValueError) as exc:
         raise HTTPException(status_code=422, detail="Invalid IANA timezone") from exc
 
-    image = await screenshot.read(settings.max_upload_bytes + 1)
+    if current_datetime is not None and current_datetime.utcoffset() is None:
+        raise HTTPException(status_code=422, detail="Current datetime must include a UTC offset")
+
+    try:
+        image = await screenshot.read(settings.max_upload_bytes + 1)
+    finally:
+        await screenshot.close()
     if not image:
         raise HTTPException(status_code=422, detail="Screenshot is empty")
     if len(image) > settings.max_upload_bytes:
