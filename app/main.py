@@ -8,14 +8,17 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import events, extractions, groups
 from app.config import get_settings
-from app.database import get_db
+from app.database import engine, get_db
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    yield
+    try:
+        yield
+    finally:
+        await engine.dispose()
 
 
 app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
