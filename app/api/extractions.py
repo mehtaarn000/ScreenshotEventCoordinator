@@ -12,7 +12,10 @@ router = APIRouter(prefix="/extractions", tags=["extractions"])
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
 
-def get_extractor(settings: Settings = Depends(get_settings)) -> EventExtractor:
+def get_extractor(
+    settings: Settings = Depends(get_settings),
+    _: CurrentUser = Depends(get_current_user),
+) -> EventExtractor:
     try:
         return EventExtractor(settings)
     except ExtractionError as exc:
