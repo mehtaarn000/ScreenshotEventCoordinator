@@ -27,8 +27,8 @@ export interface GroupRecord {
 }
 
 export interface ExtractionResult {
-  title: string;
-  starts_at: string;
+  title: string | null;
+  starts_at: string | null;
   ends_at: string | null;
   timezone: string;
   location: string | null;

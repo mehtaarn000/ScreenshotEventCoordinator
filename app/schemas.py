@@ -98,6 +98,14 @@ class VoteRead(VoteUpsert):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ExtractionResult(EventFields):
+class ExtractionResult(BaseModel):
+    """Unconfirmed draft: missing facts remain empty until the user reviews them."""
+
+    title: str | None
+    starts_at: datetime | None
+    ends_at: datetime | None
+    timezone: str
+    location: str | None
+    description: str | None
     confidence: float = Field(ge=0, le=1)
     warnings: list[str] = Field(default_factory=list)

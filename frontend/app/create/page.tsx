@@ -92,7 +92,7 @@ export default function CreateEventPage() {
       const extraction = await apiFetch<ExtractionResult>("/extractions", { method: "POST", body: data });
       setResult(extraction);
       setForm({
-        title: extraction.title,
+        title: extraction.title ?? "",
         startsAt: dateTimeLocalValue(extraction.starts_at, extraction.timezone),
         endsAt: dateTimeLocalValue(extraction.ends_at, extraction.timezone),
         timezone: extraction.timezone,
