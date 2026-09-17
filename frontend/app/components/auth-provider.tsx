@@ -21,12 +21,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) return;
+    let active = true;
+    let changed = false;
     void supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setLoading(false);
+      if (active && !changed) setUser(data.user);
+    }).catch(() => {
+      if (active && !changed) setUser(null);
+    }).finally(() => { if (active) setLoading(false); });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      changed = true;
+      if (active) { setUser(session?.user ?? null); setLoading(false); }
     });
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-    return () => data.subscription.unsubscribe();
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
 
   const value = useMemo<AuthValue>(() => ({
