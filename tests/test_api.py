@@ -12,6 +12,7 @@ class StubExtractor:
     async def extract(self, **_):
         return ExtractionResult(
             title="Book Club",
+            ends_at=None,
             starts_at=datetime.fromisoformat("2026-07-12T18:30:00-05:00"),
             timezone="America/Chicago",
             location="Library",

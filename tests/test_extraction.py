@@ -26,6 +26,7 @@ class FakeClient:
 async def test_extractor_sends_data_url_and_returns_structured_result() -> None:
     result = ExtractionResult(
         title="Neighborhood Picnic",
+        ends_at=None,
         starts_at=datetime.fromisoformat("2026-07-11T12:00:00-05:00"),
         timezone="America/Chicago",
         location="Grant Park",
@@ -48,3 +49,11 @@ def test_extractor_requires_api_key() -> None:
     with pytest.raises(ExtractionError, match="OPENAI_API_KEY"):
         EventExtractor(Settings(openai_api_key=None))
 
+
+def test_incomplete_draft_is_reviewable() -> None:
+    draft = ExtractionResult(
+        title=None, starts_at=None, ends_at=None, timezone="UTC",
+        location=None, description=None, confidence=0,
+        warnings=["Enter a title and date before saving."],
+    )
+    assert draft.starts_at is None

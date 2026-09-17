@@ -53,7 +53,9 @@ class SupabaseJWTVerifier:
                 role=claims.get("role", "authenticated"),
             )
         except PyJWKClientConnectionError as exc:
-            raise HTTPException(status_code=503, detail="Authentication temporarily unavailable") from exc
+            raise HTTPException(
+                status_code=503, detail="Authentication temporarily unavailable"
+            ) from exc
         except (InvalidTokenError, PyJWKClientError, KeyError, TypeError, ValueError) as exc:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
