@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { dateTimeLocalValue, zonedLocalToIso } from "../app/lib/format.ts";
 
+test("rejects daylight-saving gaps and invalid calendar dates", () => {
+  assert.throws(() => zonedLocalToIso("2026-03-08T02:30", "America/New_York"));
+  assert.throws(() => zonedLocalToIso("2026-02-30T10:00", "UTC"));
+});
+
 test("converts event wall time using its IANA timezone", () => {
   assert.equal(
     zonedLocalToIso("2026-07-15T18:30", "America/New_York"),
