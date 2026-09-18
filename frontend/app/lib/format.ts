@@ -21,6 +21,10 @@ export function eventDateLine(event: EventRecord) {
   const endTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric", minute: "2-digit", timeZone: event.timezone,
   }).format(new Date(event.ends_at));
+  const endDate = new Intl.DateTimeFormat("en-US", {
+    weekday: "long", month: "long", day: "numeric", timeZone: event.timezone,
+  }).format(new Date(event.ends_at));
+  if (date !== endDate) return `${date} · ${startTime} – ${endDate} · ${endTime}`;
   return `${date} · ${startTime}–${endTime}`;
 }
 
