@@ -14,7 +14,9 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   if (data.session?.access_token) headers.set("Authorization", `Bearer ${data.session.access_token}`);
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
 
-  const response = await fetch(`${apiUrl}/api/v1${path}`, { ...init, headers });
+  const response = await fetch(`${apiUrl}/api/v1${path}`, {
+    ...init, headers, cache: "no-store", signal: init.signal ?? AbortSignal.timeout(90_000),
+  });
   if (!response.ok) {
     let message = "The request could not be completed.";
     try {
