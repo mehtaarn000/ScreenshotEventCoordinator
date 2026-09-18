@@ -61,5 +61,9 @@ export function zonedLocalToIso(value: string, timeZone: string) {
 
   let timestamp = desiredUtc - offsetAt(desiredUtc);
   timestamp = desiredUtc - offsetAt(timestamp);
-  return new Date(timestamp).toISOString();
+  const result = new Date(timestamp).toISOString();
+  if (dateTimeLocalValue(result, timeZone) !== value) {
+    throw new Error("This local time does not exist. Choose a time outside the daylight-saving transition.");
+  }
+  return result;
 }
