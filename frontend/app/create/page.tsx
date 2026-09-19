@@ -127,7 +127,14 @@ export default function CreateEventPage() {
           description: form.description || null,
         }),
       });
-      if (groupId) await apiFetch<void>(`/events/${created.id}/groups/${groupId}`, { method: "PUT" });
+      if (groupId) {
+        try {
+          await apiFetch<void>(`/events/${created.id}/groups/${groupId}`, { method: "PUT" });
+        } catch {
+          router.push(`/events/${created.id}?share_failed=1`);
+          return;
+        }
+      }
       router.push(`/events/${created.id}?created=1`);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "The event couldn’t be created.");

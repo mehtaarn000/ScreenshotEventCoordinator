@@ -2,7 +2,7 @@
 
 import { ArrowLeft, CalendarDays, Check, Clock3, ExternalLink, LoaderCircle, MapPin, Share2, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AppShell } from "../../components/app-shell";
 import { useAuth } from "../../components/auth-provider";
@@ -15,6 +15,7 @@ const voteLabels: Record<VoteChoice, string> = { going: "Going", maybe: "Maybe",
 export default function EventPage() {
   const { user, loading: authLoading } = useAuth();
   const params = useParams<{ eventId: string }>();
+  const search = useSearchParams();
   const [event, setEvent] = useState<EventRecord | null>(null);
   const [groups, setGroups] = useState<GroupRecord[]>([]);
   const [selected, setSelected] = useState<VoteChoice | null>(null);
@@ -97,6 +98,7 @@ export default function EventPage() {
 
   return (
     <AppShell>
+      {search.get("share_failed") && <p role="alert" className="notice notice-error">Your event was created, but sharing failed. Use the group controls below to try again.</p>}
       <div className="event-page-head"><Link href="/" className="back-link"><ArrowLeft size={16} /> Back to plans</Link><div><button className="button button-secondary button-small" type="button" onClick={() => void copyLink()}>{copied ? <><Check size={16} /> Copied</> : <><Share2 size={16} /> Share link</>}</button></div></div>
       {error && <div className="notice notice-error event-notice" role="alert">{error}</div>}
       <section className="event-hero">
