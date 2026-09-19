@@ -75,6 +75,18 @@ export default function EventPage() {
     }
   }
 
+  async function withdraw() {
+    if (!event || voting) return;
+    setVoting(selected);
+    try {
+      await apiFetch(`/events/${event.id}/vote`, { method: "DELETE" });
+      const refreshed = await apiFetch<EventRecord>(`/events/${event.id}`);
+      setEvent(refreshed);
+      setSelected(refreshed.my_vote);
+    } catch (error) { setError(error instanceof Error ? error.message : "Could not withdraw RSVP."); }
+    finally { setVoting(null); }
+  }
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href.split("?")[0]);
@@ -131,6 +143,7 @@ export default function EventPage() {
             ))}
           </div>
           <div className="vote-summary"><strong>{totalVotes}</strong><span>{totalVotes === 1 ? "person has" : "people have"} responded</span></div>
+          {selected && <button type="button" className="button button-secondary" disabled={Boolean(voting)} onClick={() => void withdraw()}>Remove my RSVP</button>}
         </aside>
       </div>
     </AppShell>
