@@ -51,14 +51,9 @@ export default function EventPage() {
     setError(null);
     try {
       await apiFetch(`/events/${event.id}/vote`, { method: "PUT", body: JSON.stringify({ choice }) });
-      setEvent((current) => {
-        if (!current) return current;
-        const totals = { ...current.vote_totals };
-        if (selected) totals[selected] = Math.max(0, totals[selected] - 1);
-        totals[choice] += 1;
-        return { ...current, vote_totals: totals, my_vote: choice };
-      });
-      setSelected(choice);
+      const refreshed = await apiFetch<EventRecord>(`/events/${event.id}`);
+      setEvent(refreshed);
+      setSelected(refreshed.my_vote);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Your RSVP didn’t save.");
     } finally {
