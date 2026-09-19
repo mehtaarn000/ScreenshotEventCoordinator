@@ -76,9 +76,11 @@ export default function EventPage() {
   }
 
   async function copyLink() {
-    await navigator.clipboard.writeText(window.location.href.split("?")[0]);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1600);
+    try {
+      await navigator.clipboard.writeText(window.location.href.split("?")[0]);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch { setError("Copy failed. You can copy the event URL from your address bar."); }
   }
 
   if (authLoading) return <div className="loading-page"><LoaderCircle className="spin" />Loading the plan…</div>;
