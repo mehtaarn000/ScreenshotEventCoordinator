@@ -101,6 +101,16 @@ export default function EventPage() {
     }
   }
 
+  async function unshare(groupId: string) {
+    if (!event || !window.confirm("Remove this event from the group?")) return;
+    setSharing(true);
+    try {
+      await apiFetch(`/events/${event.id}/groups/${groupId}`, { method: "DELETE" });
+      setEvent({ ...event, group_ids: event.group_ids.filter((id) => id !== groupId) });
+    } catch (error) { setError(error instanceof Error ? error.message : "Could not remove sharing."); }
+    finally { setSharing(false); }
+  }
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href.split("?")[0]);
@@ -140,6 +150,7 @@ export default function EventPage() {
       <div className="event-detail-grid">
         <section className="event-body">
           {isOwner && <button className="button button-secondary" type="button" disabled={deleting} onClick={() => void deleteEvent()}>{deleting ? "Deleting…" : "Delete event"}</button>}
+          {isOwner && sharedGroups.map((group) => <button key={group.id} className="button button-secondary" type="button" disabled={sharing} onClick={() => void unshare(group.id)}>Unshare from {group.name}</button>)}
           <div className="detail-section"><span className="section-label">The details</span><h2>What’s happening</h2>{event.description ? <p className="description-text">{event.description}</p> : <p className="muted-text">No extra details were added for this event.</p>}</div>
           <div className="info-cards">
             <article><span><Clock3 /></span><div><small>When</small><strong>{eventDateLine(event)}</strong><p>{event.timezone.replaceAll("_", " ")}</p></div></article>
