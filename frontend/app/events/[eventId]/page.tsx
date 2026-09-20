@@ -149,6 +149,7 @@ export default function EventPage() {
 
       <div className="event-detail-grid">
         <section className="event-body">
+          {isOwner && <Link className="button button-secondary" href={`/events/${event.id}/edit`}>Edit event</Link>}
           {isOwner && <button className="button button-secondary" type="button" disabled={deleting} onClick={() => void deleteEvent()}>{deleting ? "Deleting…" : "Delete event"}</button>}
           {isOwner && sharedGroups.map((group) => <button key={group.id} className="button button-secondary" type="button" disabled={sharing} onClick={() => void unshare(group.id)}>Unshare from {group.name}</button>)}
           <div className="detail-section"><span className="section-label">The details</span><h2>What’s happening</h2>{event.description ? <p className="description-text">{event.description}</p> : <p className="muted-text">No extra details were added for this event.</p>}</div>
