@@ -1,7 +1,8 @@
 "use client";
 
 import { ArrowRight, CalendarDays, ImagePlus, Sparkles } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./components/auth-provider";
 import { Dashboard } from "./components/dashboard";
 
@@ -73,6 +74,12 @@ function AuthScreen() {
 
 export default function Home() {
   const { user, loading } = useAuth();
+  const router = useRouter();
+  const search = useSearchParams();
+  const next = search.get("next");
+  useEffect(() => {
+    if (user && next && /^\/(?:events\/|join\/|create$)/.test(next) && !next.includes("\\")) router.replace(next);
+  }, [user, next, router]);
   if (loading) return <div className="loading-page"><span className="brand-mark"><CalendarDays /></span><span>Gathering your plans…</span></div>;
   return user ? <Dashboard /> : <AuthScreen />;
 }
