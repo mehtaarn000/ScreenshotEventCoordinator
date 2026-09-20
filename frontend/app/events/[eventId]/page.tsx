@@ -2,7 +2,7 @@
 
 import { ArrowLeft, CalendarDays, Check, Clock3, ExternalLink, LoaderCircle, MapPin, Share2, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AppShell } from "../../components/app-shell";
 import { useAuth } from "../../components/auth-provider";
@@ -16,6 +16,8 @@ export default function EventPage() {
   const { user, loading: authLoading } = useAuth();
   const params = useParams<{ eventId: string }>();
   const search = useSearchParams();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
   const [event, setEvent] = useState<EventRecord | null>(null);
   const [groups, setGroups] = useState<GroupRecord[]>([]);
   const [selected, setSelected] = useState<VoteChoice | null>(null);
@@ -87,6 +89,18 @@ export default function EventPage() {
     finally { setVoting(null); }
   }
 
+  async function deleteEvent() {
+    if (!event || !window.confirm("Delete this event and all its RSVPs? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      await apiFetch(`/events/${event.id}`, { method: "DELETE" });
+      router.push("/");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not delete event.");
+      setDeleting(false);
+    }
+  }
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href.split("?")[0]);
@@ -125,6 +139,7 @@ export default function EventPage() {
 
       <div className="event-detail-grid">
         <section className="event-body">
+          {isOwner && <button className="button button-secondary" type="button" disabled={deleting} onClick={() => void deleteEvent()}>{deleting ? "Deleting…" : "Delete event"}</button>}
           <div className="detail-section"><span className="section-label">The details</span><h2>What’s happening</h2>{event.description ? <p className="description-text">{event.description}</p> : <p className="muted-text">No extra details were added for this event.</p>}</div>
           <div className="info-cards">
             <article><span><Clock3 /></span><div><small>When</small><strong>{eventDateLine(event)}</strong><p>{event.timezone.replaceAll("_", " ")}</p></div></article>
