@@ -62,9 +62,11 @@ export function Dashboard() {
   }
 
   async function copyInvite(group: GroupRecord) {
-    await navigator.clipboard.writeText(group.invite_code);
-    setCopied(group.id);
-    window.setTimeout(() => setCopied(null), 1600);
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/join/${encodeURIComponent(group.invite_code)}`);
+      setCopied(group.id);
+      window.setTimeout(() => setCopied(null), 1600);
+    } catch { setError(`Copy failed. Invite code: ${group.invite_code}`); }
   }
 
   const upcoming = events.filter((event) => new Date(event.ends_at ?? event.starts_at).getTime() >= now);
