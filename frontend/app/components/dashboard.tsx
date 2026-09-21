@@ -23,6 +23,7 @@ export function Dashboard() {
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [showPast, setShowPast] = useState(false);
 
   const [now] = useState(() => Date.now());
 
@@ -76,6 +77,7 @@ export function Dashboard() {
   }
 
   const upcoming = events.filter((event) => new Date(event.ends_at ?? event.starts_at).getTime() >= now);
+  const visibleEvents = showPast ? events.filter((event) => new Date(event.ends_at ?? event.starts_at).getTime() < now).reverse() : upcoming;
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "there";
 
   return (
@@ -103,8 +105,9 @@ export function Dashboard() {
       <div className="dashboard-grid">
         <section className="panel-section" aria-labelledby="upcoming-title">
           <div className="section-title"><div><span>Coming up</span><h2 id="upcoming-title">On the calendar</h2></div><Link href="/create"><Plus size={16} /> New event</Link></div>
-          {loading ? <div className="card-loading"><i /><i /><i /></div> : upcoming.length ? (
-            <div className="event-list">{upcoming.map((event) => <EventCard event={event} key={event.id} />)}</div>
+          <button className="button button-secondary" type="button" onClick={() => setShowPast(!showPast)}>{showPast ? "Show upcoming plans" : "Show past plans"}</button>
+          {loading ? <div className="card-loading"><i /><i /><i /></div> : visibleEvents.length ? (
+            <div className="event-list">{visibleEvents.map((event) => <EventCard event={event} key={event.id} />)}</div>
           ) : (
             <div className="inline-empty"><CalendarDays /><h3>No plans yet</h3><p>Upload the screenshot you keep meaning to send everyone.</p></div>
           )}
