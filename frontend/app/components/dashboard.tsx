@@ -54,6 +54,10 @@ export function Dashboard() {
       setAction(null);
       setValue("");
       setError(null);
+      if (action === "join") {
+        const refreshed = await apiFetch<EventRecord[]>("/events");
+        setEvents(refreshed);
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "That group couldn’t be saved.");
     } finally {
