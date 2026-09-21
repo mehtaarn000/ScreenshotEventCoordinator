@@ -2,7 +2,7 @@
 
 import { ArrowRight, CalendarDays, Copy, ImagePlus, Link2, Plus, Sparkles, Users, X } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { EventRecord, GroupRecord } from "../lib/types";
 import { AppShell } from "./app-shell";
@@ -18,6 +18,8 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [action, setAction] = useState<GroupAction>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (action) dialog.current?.showModal(); }, [action]);
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -127,13 +129,14 @@ export function Dashboard() {
       </div>
 
       {action && (
-        <dialog open className="modal-backdrop" aria-labelledby="group-dialog-title">
+        <dialog ref={dialog} onCancel={() => setAction(null)} className="modal-backdrop" aria-labelledby="group-dialog-title">
           <section className="modal-card">
             <button className="modal-close" type="button" onClick={() => setAction(null)} aria-label="Close"><X size={18} /></button>
             <div className="modal-icon">{action === "create" ? <Users /> : <Link2 />}</div>
             <h2 id="group-dialog-title">{action === "create" ? "Create a group" : "Join a group"}</h2>
             <p>{action === "create" ? "Make a home for the people you plan with most." : "Paste the invite code your friend sent you."}</p>
             <form onSubmit={submitGroup} className="stack-form">
+              {error && <p role="alert">{error}</p>}
               <label>{action === "create" ? "Group name" : "Invite code"}<input value={value} onChange={(event) => setValue(event.target.value)} placeholder={action === "create" ? "Sunday crew" : "Paste code here"} required /></label>
               <button className="button button-primary button-full" type="submit" disabled={saving}>{saving ? "Saving…" : action === "create" ? "Create group" : "Join group"}</button>
             </form>
