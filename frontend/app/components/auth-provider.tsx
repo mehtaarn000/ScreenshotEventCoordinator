@@ -52,7 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return data.session ? null : "Check your inbox to confirm your email, then sign in.";
     },
     async signOut() {
-      await supabase?.auth.signOut();
+      const result = await supabase?.auth.signOut();
+      if (result?.error) throw result.error;
     },
   }), [loading, user]);
 
