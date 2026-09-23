@@ -132,6 +132,11 @@ a { color: inherit; text-decoration: none; }
 .group-card h3 { margin: 0; font-size: 13px; }.group-card p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }.group-card > button { min-width: 32px; height: 30px; padding: 0 6px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 10px; cursor: pointer; }.group-card > button:hover { background: white; color: var(--green); }
 .groups-empty { padding: 18px 8px 5px; color: var(--muted); font-size: 12px; line-height: 1.5; }.groups-empty button { padding: 0; border: 0; background: none; color: var(--green); font-weight: 700; cursor: pointer; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; width: 100%; height: 100%; max-width: none; max-height: none; display: grid; place-items: center; margin: 0; padding: 20px; border: 0; background: rgba(16,28,21,.48); backdrop-filter: blur(5px); }
+.modal-backdrop:not([open]) { display: none; }
+.review-form { display: grid; gap: 20px; max-width: 680px; margin: 24px 0; }
+.review-form label { display: grid; gap: 8px; font-weight: 600; }
+.review-form input, .review-form textarea { width: 100%; padding: 12px; border: 1px solid #ccd6ce; border-radius: 10px; background: white; color: #172d21; font: inherit; }
+.review-form textarea { min-height: 160px; resize: vertical; }
 .modal-card { position: relative; width: min(100%, 430px); padding: 35px; border-radius: 22px; background: var(--surface); box-shadow: var(--shadow); }
 .modal-close { position: absolute; right: 18px; top: 18px; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: #eeefe9; color: var(--muted); cursor: pointer; }
 .modal-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; background: var(--mint); color: var(--green); }.modal-card h2 { margin: 18px 0 7px; font-size: 28px; letter-spacing: -.04em; }.modal-card > p { margin: 0; color: var(--muted); line-height: 1.5; }
