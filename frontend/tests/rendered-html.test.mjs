@@ -27,3 +27,14 @@ test("does not leave signed-out event visitors in a loading state", async () => 
   assert.match(html, /Sign in to see this event/);
   assert.doesNotMatch(html, /Loading the plan/);
 });
+
+test("protects edit and invitation routes with sign in", async () => {
+  for (const [path, expected] of [
+    ["/events/00000000-0000-4000-8000-000000000000/edit", /Sign in to edit/],
+    ["/join/test-invite", /Sign in to accept invitation/],
+  ]) {
+    const response = await render(path);
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), expected);
+  }
+});
